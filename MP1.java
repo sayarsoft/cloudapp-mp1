@@ -1,5 +1,6 @@
-import java.io.File;
-import java.lang.reflect.Array;
+
+import java.io.BufferedReader;
+import java.io.FileReader;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.*;
@@ -51,8 +52,74 @@ public class MP1 {
 
     public String[] process() throws Exception {
         String[] ret = new String[20];
-       
-        //TODO
+
+        Map<String, Integer> map = new HashMap<String, Integer>();
+        List<String> lines = new ArrayList<String>();
+
+        // Read input file to a String list
+        String currentLine;
+        BufferedReader br = new BufferedReader(new FileReader(inputFileName));
+        while ((currentLine = br.readLine()) != null)
+            lines.add(currentLine);
+        br.close();
+
+        // Get indices of lines to be processed
+        Integer[] line_indexes = getIndexes();
+
+        // Loop to process all necessary lines
+        for (int i=0; i < line_indexes.length; i++) {
+            // Get the line to be processed
+            String line = lines.get(line_indexes[i]);
+
+            // Tokenize the line
+            StringTokenizer st = new StringTokenizer(line, delimiters);
+
+            // Loop over tokens
+            while (st.hasMoreTokens()) {
+                // Make the token lowercase and trim whitespace
+                String token = st.nextToken().toLowerCase().trim();
+
+                // Not process common tokens
+                if (Arrays.asList(stopWordsArray).contains(token))
+                    continue;
+
+                // Put the token on the hashmap, increase frequency if the token
+                // is already on the hashmap
+                if (map.containsKey(token))
+                    map.put(token, map.get(token) + 1);
+                else
+                    map.put(token, 1);
+            }
+        }
+
+        class Word_Count {
+            String word;
+            Integer count;
+
+            public Word_Count(String word, Integer count) {
+                this.word = word;
+                this.count = count;
+            }
+        }
+
+        // Create a list of Word_Count to sort
+        List<Word_Count> list = new ArrayList<Word_Count>();
+
+        // Fill Word_Count list with the content of hashmap
+        for (Map.Entry<String, Integer> entry : map.entrySet())
+            list.add(new Word_Count(entry.getKey(), entry.getValue()));
+
+        // Sort the list with a special comparator
+        Collections.sort(list, new Comparator<Word_Count>() {
+            public int compare(Word_Count i1, Word_Count i2) {
+                int compare = i2.count - i1.count;
+                return (compare == 0) ? i1.word.compareTo(i2.word) : compare;
+            }
+        });
+
+        // Get the most frequent words
+        for (int i=0; i < ret.length; i++)
+            ret[i] = list.get(i).word;
 
         return ret;
     }
